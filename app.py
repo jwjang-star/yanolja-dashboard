@@ -16,7 +16,7 @@ pio.templates.default = "plotly_white+report"
 
 st.set_page_config(page_title="야놀자 가격 전략 리포트", layout="wide")
 
-# CSS: 전문 보고서 톤앤매너 (이모티콘 최소화, 명확한 가독성)
+# CSS: 전문 보고서 톤앤매너
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
@@ -44,7 +44,7 @@ def read_data(file):
 def to_num(x):
     if pd.isna(x): return 0
     s = str(x).replace(',', '').replace('원', '').strip()
-    if s == '-' or s == '': return 0  # 하이픈(-)은 0으로 처리되어 판매마감으로 인식됨
+    if s == '-' or s == '': return 0 
     try: return int(float(s))
     except: return 0
 
@@ -76,7 +76,7 @@ if f1 and f2 and f3:
     df_final = pd.merge(df_merged, df_m[['지점코드_s', '현장담당자', '사업본부', '분류']], 
                         left_on='매칭코드', right_on='지점코드_s', how='left', suffixes=('', '_m'))
 
-    # 자사 데이터 기준값 계산 (0원/하이픈 제외)
+    # 자사 데이터 기준값 계산
     our_df_all = df_final[df_final['구분'] == '자사'].copy()
     med_d = our_df_all[our_df_all['대실_n'] > 0]['대실_n'].median()
     med_s = our_df_all[our_df_all['숙박_n'] > 0]['숙박_n'].median()
@@ -88,8 +88,8 @@ if f1 and f2 and f3:
     issue_df = our_df_all[(our_df_all['대실_n'] > med_d * 2.0) | (our_df_all['숙박_n'] > med_s * 2.0)]
     issue_cnt = len(issue_df)
 
-    # 🌟 상단 요약 (Overview)
-    st.markdown("<div class='overview-title'>통합 운영 개요 (Overview)</div>", unsafe_allow_html=True)
+    # 상단 요약 (Overview)
+    st.markdown("<div class='overview-title'>📊 통합 운영 개요 (Overview)</div>", unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("총 모니터링 객실", f"{total_rooms:,}개")
     c2.metric("마감/미판매 (전체 하이픈)", f"{closed_cnt:,}개", f"전체의 {closed_cnt/total_rooms*100:.1f}%")
@@ -106,8 +106,8 @@ if f1 and f2 and f3:
     with tab1:
         st.markdown("<div class='main-title'>지점별 가격 노출 현황 및 점검 리포트</div>", unsafe_allow_html=True)
         
-        # 1. 특이 사항 점검 (대실 / 숙박 분리)
-        st.markdown("<div class='section-header'>핵심 점검 사항 (이상 고단가)</div>", unsafe_allow_html=True)
+        # 특이 사항 점검
+        st.markdown("<div class='section-header'>🚨 핵심 점검 사항 (이상 고단가)</div>", unsafe_allow_html=True)
         with st.container():
             st.markdown(f"""
             <div class='briefing-box'>
@@ -136,7 +136,7 @@ if f1 and f2 and f3:
                 else:
                     st.success("숙박 고단가 특이 사항 없음")
 
-        # 2. 분포도 (마감 객실 제외)
+        # 분포도
         st.markdown("<div class='section-header'>전체 가격 분포도 (마감 객실 제외)</div>", unsafe_allow_html=True)
         target_mgr = st.multiselect("특정 담당자 지점만 보기 (미선택 시 전체)", sorted(our_df_all['현장담당자'].unique()))
         plot_df = our_df_all if not target_mgr else our_df_all[our_df_all['현장담당자'].isin(target_mgr)]
@@ -150,14 +150,13 @@ if f1 and f2 and f3:
 
         st.divider()
 
-        # 🌟 3. 지점별 심층 분석 (1단 차트 + 2단 표)
+        # 지점별 심층 분석
         st.markdown("<div class='section-header'>지점별 상세 분석 (객실 단위)</div>", unsafe_allow_html=True)
         sel_hotel = st.selectbox("심층 분석할 지점을 선택하세요", sorted(our_df_all['숙소명'].unique()))
         
         if sel_hotel:
             target_df = our_df_all[our_df_all['숙소명'] == sel_hotel]
             
-            # 1단: 가로로 꽉 차는 큰 차트
             st.markdown("**객실타입별 요금 비교 차트**")
             if not target_df.empty:
                 melted = target_df.melt(id_vars=['객실타입'], value_vars=['대실_n', '숙박_n'], var_name='유형', value_name='가격')
@@ -168,7 +167,6 @@ if f1 and f2 and f3:
                 fig_bar.update_layout(yaxis_title=None, xaxis_title="요금(원)")
                 st.plotly_chart(fig_bar, use_container_width=True)
 
-            # 2단: 대실 / 숙박 표 나란히 배치
             col_t1, col_t2 = st.columns(2)
             with col_t1:
                 st.markdown("**[대실] 요금 상세**")
@@ -178,7 +176,7 @@ if f1 and f2 and f3:
                 st.dataframe(target_df[['객실타입', '숙박상태', '숙박금액']].reset_index(drop=True), use_container_width=True)
 
     # =========================================================================
-    # TAB 2: 전 지점 다각도 랭킹 분석
+    # TAB 2: 전 지점 다각도 랭킹 분석 (🌟 빨간 기준선 복구 완료!)
     # =========================================================================
     with tab2:
         st.markdown("<div class='main-title'>전 지점 다각도 랭킹 분석</div>", unsafe_allow_html=True)
@@ -193,7 +191,15 @@ if f1 and f2 and f3:
         else: rank_df = base_df.groupby('숙소명')[val_c].max().reset_index()
         
         rank_df = rank_df.sort_values(val_c, ascending=True)
+        
+        # 🌟 누락되었던 지점별 중앙값(빨간선) 다시 계산 및 추가
+        global_ref = rank_df[val_c].median() 
+
         fig_r = px.bar(rank_df, y='숙소명', x=val_c, orientation='h', text_auto=',.0f', color=val_c, color_continuous_scale='Blues', height=max(600, len(rank_df)*25))
+        
+        # 🌟 여기에 다시 빨간 점선을 꽂아 넣었습니다!
+        fig_r.add_vline(x=global_ref, line_dash="dash", line_color="#ef4444", annotation_text="지점 중앙값", annotation_position="top right")
+        
         fig_r.update_layout(yaxis_title=None, xaxis_title="요금(원)", coloraxis_showscale=False)
         st.plotly_chart(fig_r, use_container_width=True)
 
