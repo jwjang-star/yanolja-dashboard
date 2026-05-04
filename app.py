@@ -49,16 +49,22 @@ def to_num(x):
     except: return 0
 
 # ── 데이터 로드 ─────────────────────────────────────────────
-with st.sidebar:
-    st.header("데이터 업로드")
-    f1 = st.file_uploader("1. 가격 데이터 (통합)", type=['csv'])
-    f2 = st.file_uploader("2. 담당자 맵핑", type=['csv'])
-    f3 = st.file_uploader("3. 경쟁사 매칭", type=['csv'])
+import os
 
-if f1 and f2 and f3:
-    df_p = read_data(f1)
-    df_m = read_data(f2)
-    df_c = read_data(f3)
+# ── 백단(서버) 데이터 자동 로드 ─────────────────────────────────────────────
+# data 폴더 안의 파일 경로 지정
+FILE_P = "data/price_data.csv"
+FILE_M = "data/manager_map.csv"
+FILE_C = "data/comp_match.csv"
+
+# 세 파일이 모두 존재하는지 체크
+if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
+    # 파일을 읽기 모드(rb)로 열어서 기존 read_data 함수에 전달
+    with open(FILE_P, 'rb') as f1, open(FILE_M, 'rb') as f2, open(FILE_C, 'rb') as f3:
+        df_p = read_data(f1)
+        df_m = read_data(f2)
+        df_c = read_data(f3)
+
 
     # 전처리 및 병합
     df_p['지점코드_s'] = df_p['지점코드'].astype(str).str.split('.').str[0]
@@ -661,4 +667,4 @@ if f1 and f2 and f3:
             st.success(f"현재 {mode_t3} 기준, 상권 대비 10% 이상 차이나는 특이 지점이 없습니다.")
 
 else:
-    st.info("좌측 사이드바에 파일을 업로드해 주세요.")
+    st.error("🚨 데이터 연동 에러: 서버의 'data' 폴더에 필수 CSV 파일 3개가 모두 있는지 확인해 주세요.")
