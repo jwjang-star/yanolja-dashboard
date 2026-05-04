@@ -111,15 +111,23 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
     # =========================================================================
     with tab1:
         st.markdown("<div class='main-title'>지점별 가격 노출 현황 및 점검 리포트</div>", unsafe_allow_html=True)
-        
+        st.markdown("""
+        <div style='background-color: #f8fafc; padding: 15px; border-radius: 5px; border-left: 4px solid #94a3b8; margin-bottom: 30px;'>
+            <p style='margin: 0; font-size: 14px; color: #334155; line-height: 1.6;'>
+                <b>분석 목적:</b> 자사 전 지점의 객실 요금의 누락 및 비정상적 고단가 데이터를 실시간으로 탐지하여, <b>가격 오설정으로 인한 기회 손실을 최소화</b>합니다.<br>
+                <b>활용 가이드:</b> 하이라이트된 '이상 고단가' 객실은 즉각적인 조치가 필요한 리스크 요인입니다. 표에 명시된 담당자 확인 후 정상 판매가로 조정하여 고객 이탈을 방어합니다.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
         # 특이 사항 점검
         st.markdown("<div class='section-header'>🚨 핵심 점검 사항 (이상 고단가)</div>", unsafe_allow_html=True)
         with st.container():
             st.markdown(f"""
-            <div class='briefing-box'>
-            현재 정상 판매 범위를 벗어난 '이상 고단가'로 의심되는 객실이 <b>총 {issue_cnt}건</b> 발견되었습니다.<br>
-            <span style='color:#ef4444; font-weight:bold;'>(※ 대실/숙박 요금에 표시된 하이픈(-)은 '판매 마감' 또는 '미운영'으로 간주하여 점검 대상에서 정상 제외처리 되었습니다.)</span>
-            <p class='criteria'>* 선정 기준: 대실 또는 숙박 요금이 전체 일반 단가(중앙값) 대비 2배 초과하여 등록된 객실</p>
+            <div style='margin-bottom: 25px; font-size: 14px; color: #334155; line-height: 1.6;'>
+                현재 정상 판매 범위를 벗어난 <b>'비정상적 고단가(가격 설정 오류)'</b>로 의심되는 객실이 <b>총 {issue_cnt}건</b> 발견되었습니다.<br>
+                <span style='color:#ef4444; font-weight:bold;'>(※ 대실/숙박 요금에 표시된 하이픈(-)은 '판매 마감' 또는 '미운영'으로 간주하여 점검 대상에서 제외되었습니다.)</span>
+                <p style='margin-top: 8px; font-size: 13px; color: #64748b;'>* 선정 기준: 대실 또는 숙박 요금이 전체 일반 단가(중앙값) 대비 2배 초과하여 등록된 객실</p>
             </div>
             """, unsafe_allow_html=True)
             
@@ -130,13 +138,13 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
 
             col_i1, col_i2 = st.columns(2)
             with col_i1:
-                st.markdown("**[대실] 이상 고단가 내역**")
+                st.markdown("**[대실] 고단가 지점**")
                 if not issue_d.empty:
                     st.dataframe(issue_d.reset_index(drop=True), use_container_width=True, height=200)
                 else:
                     st.success("대실 고단가 특이 사항 없음")
             with col_i2:
-                st.markdown("**[숙박] 이상 고단가 내역**")
+                st.markdown("**[숙박] 고단가 지점**")
                 if not issue_s.empty:
                     st.dataframe(issue_s.reset_index(drop=True), use_container_width=True, height=200)
                 else:
@@ -186,7 +194,16 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
     # =========================================================================
     with tab2:
         st.markdown("<div class='main-title'>전 지점 다각도 가격 전략 분석</div>", unsafe_allow_html=True)
-
+        
+        st.markdown("""
+        <div style='background-color: #f8fafc; padding: 15px; border-radius: 5px; border-left: 4px solid #3b82f6; margin-bottom: 30px;'>
+            <p style='margin: 0; font-size: 14px; color: #334155; line-height: 1.6;'>
+                <b> 분석 목적:</b> 진입 단가(최저가)부터 프리미엄(최고가) 구간까지, 자사 브랜드의 <b>전체적인 시장 포지셔닝과 가격을 전체적으로 확인</b>합니다.<br>
+                <b> 활용 가이드:</b> 기준 지표(최저/중앙/최고)를 전환하며 각 지점별 단가 서열이 본사의 의도된 전략과 일치하는지 점검합니다.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+	
         # 1. 가격 구분 선택 (상단 배치)
         mode = st.radio("분석 요금 구분", ["대실", "숙박"], horizontal=True)
         val_c = '대실_n' if mode == "대실" else '숙박_n'
@@ -268,6 +285,15 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
     # =========================================================================
     with tab3:
         st.markdown("<div class='main-title'>상권별 경쟁 분석</div>", unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style='background-color: #f8fafc; padding: 15px; border-radius: 5px; border-left: 4px solid #10b981; margin-bottom: 30px;'>
+            <p style='margin: 0; font-size: 14px; color: #334155; line-height: 1.6;'>
+                <b>분석 목적:</b> 특정 상권 내 핵심 타겟 경쟁사와의 1:1 객실 단가 매칭을 통해 <b>실질적인 가격 경쟁 우위 및 마진 확보 구간을 분석</b>합니다.<br>
+                <b>활용 가이드:</b> 객실 서열별 요금 격차를 확인하여, 경쟁 우위(저가) 구간은 단가를 인상해 마진을 극대화하고 열위(고가) 구간은 적정 방어 단가로 조정하는 지표로 활용합니다.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # ── 공통 설정 ─────────────────────────────────────────────────────
         mode_t3  = st.radio("분석 요금 기준", ["대실", "숙박"], horizontal=True, key="t3_mode")
@@ -316,7 +342,7 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
         # ══════════════════════════════════════════════════════════════════
         # LAYER 1 — 상권 경쟁력 스코어보드
         # ══════════════════════════════════════════════════════════════════
-        st.markdown("<div class='section-header'>LAYER 1 — 전체 상권 경쟁력 스코어보드</div>",
+        st.markdown("<div class='section-header'> 전체 상권 경쟁력 스코어보드</div>",
                     unsafe_allow_html=True)
         st.markdown(
             "<div class='criteria'>"
@@ -392,7 +418,7 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
         # ══════════════════════════════════════════════════════════════════
         # LAYER 2 — 선택 상권 드릴다운
         # ══════════════════════════════════════════════════════════════════
-        st.markdown("<div class='section-header'>LAYER 2 — 상권 선택 후 상세 분석</div>",
+        st.markdown("<div class='section-header'> 상권 선택 후 상세 분석</div>",
                     unsafe_allow_html=True)
 
         sel_area = st.selectbox(
@@ -575,7 +601,7 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
        # ══════════════════════════════════════════════════════════════════
         # LAYER 3 — 즉시 조치 필요 지점 액션 포인트 (고도화 버전)
         # ══════════════════════════════════════════════════════════════════
-        st.markdown("<div class='section-header'>🚨 LAYER 3 — 즉시 조치 필요 지점 (전체 상권 통합)</div>", unsafe_allow_html=True)
+        st.markdown("<div class='section-header'>🚨 즉시 조치 필요 지점 (전체 상권 통합)</div>", unsafe_allow_html=True)
         st.markdown(
             "<div class='criteria'>"
             "경쟁사 상권 평균 대비 <b>자사 요금이 10% 이상 높은 지점(위험)</b> 또는 <b>10% 이상 저렴한 지점(기회 손실)</b>을 자동 추출합니다.<br>"
