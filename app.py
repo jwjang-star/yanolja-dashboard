@@ -120,36 +120,6 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
         </div>
         """, unsafe_allow_html=True)
 
-        # 특이 사항 점검
-        st.markdown("<div class='section-header'>🚨 핵심 점검 사항 (이상 고단가)</div>", unsafe_allow_html=True)
-        with st.container():
-            st.markdown(f"""
-            <div style='margin-bottom: 25px; font-size: 14px; color: #334155; line-height: 1.6;'>
-                현재 정상 판매 범위를 벗어난 <b>'비정상적 고단가(가격 설정 오류)'</b>로 의심되는 객실이 <b>총 {issue_cnt}건</b> 발견되었습니다.<br>
-                <span style='color:#ef4444; font-weight:bold;'>(※ 대실/숙박 요금에 표시된 하이픈(-)은 '판매 마감' 또는 '미운영'으로 간주하여 점검 대상에서 제외되었습니다.)</span>
-                <p style='margin-top: 8px; font-size: 13px; color: #64748b;'>* 선정 기준: 대실 또는 숙박 요금이 전체 일반 단가(중앙값) 대비 2배 초과하여 등록된 객실</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            issue_d = our_df_all[our_df_all['대실_n'] > med_d * 2.0][['현장담당자', '숙소명', '객실타입', '대실금액']]
-            issue_d.columns = ['현장담당자', '지점명', '객실명', '금액']
-            issue_s = our_df_all[our_df_all['숙박_n'] > med_s * 2.0][['현장담당자', '숙소명', '객실타입', '숙박금액']]
-            issue_s.columns = ['현장담당자', '지점명', '객실명', '금액']
-
-            col_i1, col_i2 = st.columns(2)
-            with col_i1:
-                st.markdown("**[대실] 고단가 지점**")
-                if not issue_d.empty:
-                    st.dataframe(issue_d.reset_index(drop=True), use_container_width=True, height=200)
-                else:
-                    st.success("대실 고단가 특이 사항 없음")
-            with col_i2:
-                st.markdown("**[숙박] 고단가 지점**")
-                if not issue_s.empty:
-                    st.dataframe(issue_s.reset_index(drop=True), use_container_width=True, height=200)
-                else:
-                    st.success("숙박 고단가 특이 사항 없음")
-
         # 분포도
         st.markdown("<div class='section-header'>전체 가격 분포도 (마감 객실 제외)</div>", unsafe_allow_html=True)
         target_mgr = st.multiselect("특정 담당자 지점만 보기 (미선택 시 전체)", sorted(our_df_all['현장담당자'].unique()))
@@ -188,6 +158,36 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
             with col_t2:
                 st.markdown("**[숙박] 요금 상세**")
                 st.dataframe(target_df[['객실타입', '숙박상태', '숙박금액']].reset_index(drop=True), use_container_width=True)
+
+        # 특이 사항 점검
+        st.markdown("<div class='section-header'>🚨 핵심 점검 사항 (이상 고단가)</div>", unsafe_allow_html=True)
+        with st.container():
+            st.markdown(f"""
+            <div style='margin-bottom: 25px; font-size: 14px; color: #334155; line-height: 1.6;'>
+                현재 정상 판매 범위를 벗어난 <b>'비정상적 고단가(가격 설정 오류)'</b>로 의심되는 객실이 <b>총 {issue_cnt}건</b> 발견되었습니다.<br>
+                <span style='color:#ef4444; font-weight:bold;'>(※ 대실/숙박 요금에 표시된 하이픈(-)은 '판매 마감' 또는 '미운영'으로 간주하여 점검 대상에서 제외되었습니다.)</span>
+                <p style='margin-top: 8px; font-size: 13px; color: #64748b;'>* 선정 기준: 대실 또는 숙박 요금이 전체 일반 단가(중앙값) 대비 2배 초과하여 등록된 객실</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            issue_d = our_df_all[our_df_all['대실_n'] > med_d * 2.0][['현장담당자', '숙소명', '객실타입', '대실금액']]
+            issue_d.columns = ['현장담당자', '지점명', '객실명', '금액']
+            issue_s = our_df_all[our_df_all['숙박_n'] > med_s * 2.0][['현장담당자', '숙소명', '객실타입', '숙박금액']]
+            issue_s.columns = ['현장담당자', '지점명', '객실명', '금액']
+
+            col_i1, col_i2 = st.columns(2)
+            with col_i1:
+                st.markdown("**[대실] 고단가 지점**")
+                if not issue_d.empty:
+                    st.dataframe(issue_d.reset_index(drop=True), use_container_width=True, height=200)
+                else:
+                    st.success("대실 고단가 특이 사항 없음")
+            with col_i2:
+                st.markdown("**[숙박] 고단가 지점**")
+                if not issue_s.empty:
+                    st.dataframe(issue_s.reset_index(drop=True), use_container_width=True, height=200)
+                else:
+                    st.success("숙박 고단가 특이 사항 없음")
 
 # =========================================================================
     # TAB 2: 전 지점 다각도 랭킹 분석 (전략 모니터링 보드)
