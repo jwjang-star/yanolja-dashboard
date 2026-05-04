@@ -175,32 +175,86 @@ if f1 and f2 and f3:
                 st.markdown("**[숙박] 요금 상세**")
                 st.dataframe(target_df[['객실타입', '숙박상태', '숙박금액']].reset_index(drop=True), use_container_width=True)
 
-    # =========================================================================
-    # TAB 2: 전 지점 다각도 랭킹 분석 (🌟 빨간 기준선 복구 완료!)
+# =========================================================================
+    # TAB 2: 전 지점 다각도 랭킹 분석 (전략 모니터링 보드)
     # =========================================================================
     with tab2:
-        st.markdown("<div class='main-title'>전 지점 다각도 랭킹 분석</div>", unsafe_allow_html=True)
-        mode = st.radio("분석 요금", ["대실", "숙박"], horizontal=True)
-        agg_type = st.radio("지표", ["최저가 (시작단가)", "중앙값 (일반단가)", "최고가 (프리미엄단가)"], horizontal=True)
+        st.markdown("<div class='main-title'>전 지점 다각도 가격 전략 분석</div>", unsafe_allow_html=True)
+
+        # 1. 가격 구분 선택 (상단 배치)
+        mode = st.radio("분석 요금 구분", ["대실", "숙박"], horizontal=True)
         val_c = '대실_n' if mode == "대실" else '숙박_n'
         
-        base_df = our_df_all[our_df_all[val_c] > 0] # 마감/0원 제외
+        # 데이터 기초 필터링 (해당 요금제 판매 중인 객실만)
+        active_rooms = our_df_all[our_df_all[val_c] > 0]
+
+        # 🌟 2. 핵심 지표 4대 박스 (ADR 포함)
+        if not active_rooms.empty:
+            g_min = active_rooms[val_c].min()
+            g_med = active_rooms[val_c].median()
+            g_max = active_rooms[val_c].max()
+            g_adr = active_rooms[val_c].mean() # ADR (Average Daily Rate)
+
+            st.markdown("<div class='section-header'>전체 브랜드 가격 포지셔닝 요약</div>", unsafe_allow_html=True)
+            kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+            
+            with kpi1:
+                st.metric(label=f"브랜드 최저가 ({mode})", value=f"{g_min:,.0f}원")
+                st.caption("고객 유입을 위한 최소 진입 가격")
+            with kpi2:
+                st.metric(label=f"브랜드 중앙값 ({mode})", value=f"{g_med:,.0f}원")
+                st.caption("가장 보편적인 표준 판매 가격")
+            with kpi3:
+                st.metric(label=f"브랜드 최고가 ({mode})", value=f"{g_max:,.0f}원")
+                st.caption("프리미엄/스위트룸 최대 단가")
+            with kpi4:
+                # 숙박일 경우 ADR로 표기, 대실일 경우 평균가로 표기
+                label_name = "전체 ADR (평균객단가)" if mode == "숙박" else "전체 평균 대실가격"
+                st.metric(label=label_name, value=f"{g_adr:,.0f}원", delta=f"중앙값 대비 {g_adr-g_med:+,.0f}", delta_color="normal")
+                st.caption("수익성 판단의 기준 지표")
         
-        if "최저가" in agg_type: rank_df = base_df.groupby('숙소명')[val_c].min().reset_index()
-        elif "중앙값" in agg_type: rank_df = base_df.groupby('숙소명')[val_c].median().reset_index()
-        else: rank_df = base_df.groupby('숙소명')[val_c].max().reset_index()
+        st.divider()
+
+       # 3. 상세 랭킹 분석
+        st.markdown("<div class='section-header'>지점별 가격 서열 랭킹</div>", unsafe_allow_html=True)
         
+        # 라디오 버튼 (상단 배치)
+        agg_type = st.radio("순위 산정 기준 지표", ["최저가", "중앙값", "최고가"], horizontal=True)
+        
+        # 🌟 지능형 해석 문구 (버튼 하단에 작고 세련되게 배치)
+        if agg_type == "최저가":
+            st.markdown("<div style='font-size: 13px; color: #64748b; margin-top: -10px; margin-bottom: 20px;'>💡 <b>최저가 순위:</b> 상권 내에서 가장 공격적인 '미끼 상품(진입 단가)'을 운영 중인 지점을 확인합니다.</div>", unsafe_allow_html=True)
+        elif agg_type == "중앙값":
+            st.markdown("<div style='font-size: 13px; color: #64748b; margin-top: -10px; margin-bottom: 20px;'>💡 <b>중앙값 순위:</b> 지점별 '주력 상품'의 가격대를 비교하여 실질적인 단가(현실 단가) 수준을 파악합니다.</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div style='font-size: 13px; color: #64748b; margin-top: -10px; margin-bottom: 20px;'>💡 <b>최고가 순위:</b> 프리미엄 객실(파티룸, 스위트 등)의 가격을 비교하여 고단가 유도 현황을 파악합니다.</div>", unsafe_allow_html=True)
+
+        # 랭킹 데이터 계산
+        if agg_type == "최저가":
+            rank_df = active_rooms.groupby('숙소명')[val_c].min().reset_index()
+        elif agg_type == "중앙값":
+            rank_df = active_rooms.groupby('숙소명')[val_c].median().reset_index()
+        else:
+            rank_df = active_rooms.groupby('숙소명')[val_c].max().reset_index()
+
         rank_df = rank_df.sort_values(val_c, ascending=True)
         
-        # 🌟 누락되었던 지점별 중앙값(빨간선) 다시 계산 및 추가
-        global_ref = rank_df[val_c].median() 
-
-        fig_r = px.bar(rank_df, y='숙소명', x=val_c, orientation='h', text_auto=',.0f', color=val_c, color_continuous_scale='Blues', height=max(600, len(rank_df)*25))
+        # 그래프 생성 (가로 막대형)
+        fig_r = px.bar(rank_df, 
+                          y='숙소명', 
+                          x=val_c, 
+                          orientation='h',
+                          text_auto=',.0f',
+                          color=val_c,
+                          color_continuous_scale='Blues',
+                          height=max(600, len(rank_df)*25)) 
         
-        # 🌟 여기에 다시 빨간 점선을 꽂아 넣었습니다!
-        fig_r.add_vline(x=global_ref, line_dash="dash", line_color="#ef4444", annotation_text="지점 중앙값", annotation_position="top right")
+        # 기준선 추가 (선택한 지표의 전체 중앙값)
+        ref_line = rank_df[val_c].median()
+        fig_r.add_vline(x=ref_line, line_dash="dash", line_color="#ef4444", 
+                        annotation_text=f"전체 기준선 ({ref_line:,.0f})", annotation_position="top right")
         
-        fig_r.update_layout(yaxis_title=None, xaxis_title="요금(원)", coloraxis_showscale=False)
+        fig_r.update_layout(yaxis_title=None, xaxis_title="금액(원)", coloraxis_showscale=False)
         st.plotly_chart(fig_r, use_container_width=True)
 
     # =========================================================================
