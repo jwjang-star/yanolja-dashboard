@@ -365,7 +365,7 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
             sb3.metric("🟢 가격 경쟁력 우위 상권", f"{n_green}개")
             st.markdown("<br>", unsafe_allow_html=True)
 
-        # 상권 카드 그리드
+# 상권 카드 그리드
         if area_sum_df.empty:
             st.warning("경쟁사 데이터가 있는 상권이 없습니다.")
         else:
@@ -378,6 +378,15 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
             for row_data in rows:
                 cols = st.columns(cols_per_row)
                 for col, (_, row) in zip(cols, row_data.iterrows()):
+                    
+                    # 🌟 [추가 1] 상권별 자사/경쟁사 평균 계산
+                    c_df = valid_df[valid_df['상권명'] == row['상권명']]
+                    our_avg_area = c_df[c_df['구분'] == '자사'][val_c3].mean()
+                    comp_avg_area = c_df[c_df['구분'] == '경쟁사'][val_c3].mean()
+                    
+                    our_avg_area = 0 if pd.isna(our_avg_area) else our_avg_area
+                    comp_avg_area = 0 if pd.isna(comp_avg_area) else comp_avg_area
+
                     gap_sign  = "+" if row['gap_pct'] >= 0 else ""
                     gap_str   = f"{gap_sign}{row['gap_pct']*100:.1f}%"
 
@@ -410,11 +419,13 @@ if os.path.exists(FILE_P) and os.path.exists(FILE_M) and os.path.exists(FILE_C):
                           <div style="font-size:13px;font-weight:700;color:{gap_color};">
                             자사 평균가 {gap_str} 차이
                           </div>
+                          <div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: normal;">
+                            자사 {our_avg_area:,.0f}원 · 경쟁사 {comp_avg_area:,.0f}원
+                          </div>
                         </div>
                         """, unsafe_allow_html=True)
 
         st.divider()
-
         # ══════════════════════════════════════════════════════════════════
         # LAYER 2 — 선택 상권 드릴다운
         # ══════════════════════════════════════════════════════════════════
